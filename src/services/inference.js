@@ -11,17 +11,15 @@ const predictClassification = async (model, image) => {
 
     const prediction = await model.predict(tensor);
     const score = await prediction.data();
-    const confidenceScore = Math.max(...score) * 100;
+    const probability = score[0];
+    const confidenceScore = probability * 100;
 
     const classes = ["Cancer", "Non-cancer"];
-    const classResult = tf.argMax(prediction, 1).dataSync()[0];
-    const label = classes[classResult];
-
+    const label = probability > 0.5 ? classes[0] : classes[1];
     let suggestion;
 
     if (label === "Cancer") {
-      suggestion =
-        "Terdeteksi sebagai kanker. Segera konsultasi dengan dokter terdekat untuk meminimalisasi penyebaran kanker.";
+      suggestion = "Segera periksa ke dokter!";
     }
 
     if (label === "Non-cancer") {
@@ -30,7 +28,7 @@ const predictClassification = async (model, image) => {
     }
     return { confidenceScore, label, suggestion };
   } catch (error) {
-    throw new InputError(`Terjadi kesalahan input: ${error.message}`);
+    throw new InputError(`Terjadi kesalahan dalam melakukan prediksi`);
   }
 };
 
